@@ -1,0 +1,5 @@
+Resources:
+        CrustyTestBucket:
+                Type: AWS::S3::Bucket
+                Properties:
+                        BucketName: crusty-test-bucket

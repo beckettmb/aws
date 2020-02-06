@@ -1,0 +1,19 @@
+Resources:
+        CrustyDistribution:
+                Type: AWS::CloudFront::Distribution
+                Properties:
+                        DistributionConfig:
+                                DefaultCacheBehavior:
+                                        ForwardedValues:
+                                                QueryString: false
+                                        TargetOriginId: !Ref CrustyTestBucket
+                                        ViewerProtocolPolicy: allow-all
+                                Enabled: true
+                                Origins:
+                                        - DomainName: crusty-test-bucket.s3.amazonaws.com
+                                          Id: !Ref CrustyTestBucket
+                                          S3OriginConfig: {}
+        CrustyTestBucket:
+                Type: AWS::S3::Bucket
+                Properties:
+                        BucketName: crusty-test-bucket
