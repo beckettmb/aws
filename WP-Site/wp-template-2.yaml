@@ -1,0 +1,46 @@
+Parameters:
+  ImageId:
+    Description: "Image ID for launch config"
+    Type: String
+Resources:
+  WpLc:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      LaunchConfigurationName: wp-lc
+      ImageId: !Ref ImageId
+      KeyName: wp-ec2-key
+      SecurityGroups:
+        - !ImportValue wp-stack-WpSgId
+      InstanceType: t2.micro
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+  WpAsg:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: wp-asg
+      MinSize: 1
+      MaxSize: 3
+      LaunchConfigurationName: !Ref WpLc
+      Tags:
+        - Key: Name
+          Value: webserver
+          PropagateAtLaunch: true
+      VPCZoneIdentifier:
+        - !ImportValue wp-stack-PubSubnet1
+        - !ImportValue wp-stack-PubSubnet2
+        - !ImportValue wp-stack-PubSubnet3
+      TargetGroupARNs: 
+        - !ImportValue wp-stack-TgArn
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
+  CpuUsage:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref WpAsg
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        TargetValue: 90.0
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
